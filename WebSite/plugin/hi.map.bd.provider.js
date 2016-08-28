@@ -1,6 +1,22 @@
-﻿/*
+﻿
+
+
+/**
+ * 说明：
+ * 		Server:		为模型提供外部访问的接口
+ * 		Model: 		模型
+ * 		Interface:	接口文档
+ * 		
+ *		S-M-I　	组成一个模块 		
+ * 
+ */
+
+
+function 
+
+
+/*
 	@ 复制opt对象 @
-    @ 张诗旭 @
 */
 function extendOpts(destination, source) {
 	for (var property in source)
@@ -9,7 +25,6 @@ function extendOpts(destination, source) {
 }
 /*
     @ 对象继承 @
-    @ 张诗旭 @
 */
 function extend(subClass, superClass) {
 	var f = function () { };
@@ -28,15 +43,18 @@ function extend(subClass, superClass) {
 
 /*
 	@ HiMapBase基类 @
-    @ 张诗旭 @
 */
-var HiMapBase = function () { }
+var HiMapBase = function (options) { 
+	extendOpts(this.Opts, options);
+}
 
 HiMapBase.prototype = {
     IsCreated: false,                               //是否已经建立
-	Map: null,
 	Opts: {
+		map: null,
 		containerId: "",							//地图初始的容器ID
+		lo: 0,										//经度
+		la: 0,										//纬度
 		point: new BMap.Point(116.404, 39.915),		//初始化地图的中心点
 		zoom: 15,									//地图的原始缩放比例
 		openzoom: true,								//是否开启鼠标缩放
@@ -44,20 +62,26 @@ HiMapBase.prototype = {
 
     /* @ 创建地图 @ */
 	Create: function (options) {
-		extendOpts(this.Opts, options);
+		
 
 		if (!this.Opts.containerId) {
-			console.log("_opts.containerId is null or empty");
+			console.log("Method: HiMapBase.Create; Msg: this._opts.containerId is null or empty");
 			return;
 		}
-		this.Map = new BMap.Map(this.Opts.containerId);
-		this.Map.enableScrollWheelZoom(this.Opts.openzoom);
+
+		//this.Map = new BMap.Map(this.Opts.containerId);
+		//this.Map.enableScrollWheelZoom(this.Opts.openzoom);
+
+		this.Opts.map.Create();
 
 		return this;
 	},
 
     /*  @ 显示地图 @ */
 	Show: function (point) {
+
+		if(!this.opts)
+
 	    if (this.Opts && this.Map) {
 	        this.Map.centerAndZoom(this.Opts.point, this.Opts.zoom);
 	        //this.AddMarker(new HiMarker(point.lng, point.lat));
@@ -106,11 +130,50 @@ HiMapBase.prototype = {
 
 };
 
+/*@ baidu地图 @*/
+function BaiduMap(){
+	/* @ superClass指向父类的原型;在子类的内部弱化对父类的依赖 @ */
+	BaiduMap.superclass.constructor.call(this);
+}
+/* @ 设置原型链 @ */
+extend(BaiduMap, HiMapBase);
+BaiduMap.prototype.Create = function(options){}
+BaiduMap.prototype.Show = function(point){}
+BaiduMap.prototype.AddMarkers = function(collect){}
+BaiduMap.prototype.AddMarker = function(himarker){}
+BaiduMap.prototype.clearOverlays = function(){}
+BaiduMap.prototype.MoveTo = function(point, zoom){}
+
+/*@ google地图 @*/
+function GoogleMap(){
+	GoogleMap.superclass.constructor.call(this);
+}
+extend(GoogleMap, HiMapBase);
+GoogleMap.prototype.Create = function(options){}
+GoogleMap.prototype.Show = function(point){}
+GoogleMap.prototype.AddMarkers = function(collect){}
+GoogleMap.prototype.AddMarker = function(himarker){}
+GoogleMap.prototype.clearOverlays = function(){}
+GoogleMap.prototype.MoveTo = function(point, zoom){}
+
+/*@ 高的地图 @*/
+function Amap(){
+	Amap.superclass.constructor.call(this);
+}
+extend(Amap, HiMapBase);
+Amap.prototype.Create = function(options){}
+Amap.prototype.Show = function(point){}
+Amap.prototype.AddMarkers = function(collect){}
+Amap.prototype.AddMarker = function(himarker){}
+Amap.prototype.clearOverlays = function(){}
+Amap.prototype.MoveTo = function(point, zoom){}
+
+
+
 /*
-	@ HiMap地图类 @
-    @ 张诗旭 @
+	@ HiMap地图服务类 @
 */
-var HiMap = (function () {
+var HiMapServer = (function () {
 	var _current = null;
 
 	function _init(options) {
@@ -142,7 +205,7 @@ function HiMarker(lo, la, data) {
 	    label.setOffset(new BMap.Size(0, 3));
 	    this.marker.setLabel(label);
 	}
-	
+
 
     /* @ 绑定mouseover事件 @ */
     /*
@@ -150,7 +213,7 @@ function HiMarker(lo, la, data) {
 		var postWindow = new CompanyPostInfoWindow();
 		postWindow.InitWindow(this);
 		postWindow.ShowWindow();
-        
+
 	});
     */
     /* @ 绑定mouseout事件 @ */
@@ -257,14 +320,14 @@ HiOverlayWindow.prototype = {
         @ 窗口重绘 @
             说明:根据需求重新绘制窗口;(回锅)
             职责:再加工
-    */
+  */
 	ReDraw: function () {
 
 	}
 };
 
-/* 
-    @ 企业职位信息窗口 @ 
+/*
+    @ 企业职位信息窗口 @
         关系:继承至CompanyPostInfoWindow
 */
 function CompanyPostInfoWindow() {
@@ -283,5 +346,3 @@ function CompanyPostInfoWindow() {
 
 /* @ 设置原型链 @ */
 extend(CompanyPostInfoWindow, HiOverlayWindow);
-
-
